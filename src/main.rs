@@ -27,16 +27,18 @@ fn render_mesh(mesh: &Mesh, transform: Mat4) {
         let v1 = mesh.vertices[face.vertex_indices[0] - 1];
         let v2 = mesh.vertices[face.vertex_indices[1] - 1];
         let v3 = mesh.vertices[face.vertex_indices[2] - 1];
-        let normal = face.normal_index.map(|i| mesh.normals[i - 1]).unwrap_or(Vec3::Y);
+        let normal = face.normal_index.map(|i| mesh.normals[i - 1]);
 
         let v1_transformed = transform * v1.extend(1.0);
         let v2_transformed = transform * v2.extend(1.0);
         let v3_transformed = transform * v3.extend(1.0);
-        let normal_transformed = Vec4::xyz(norm_mat * normal.extend(1.0)).normalize();
+        let normal_transformed = normal.map(|n| Vec4::xyz(norm_mat * n.extend(1.0)).normalize());
 
         // Check if we can cull the face.
-        if normal_transformed.dot(v1_transformed.xyz() / v1_transformed.w) >= 0.0 {
-            continue;
+        if let Some(n) = normal_transformed {
+            if n.dot(v1_transformed.xyz() / v1_transformed.w) >= 0.0 {
+                continue;
+            }
         }
 
         let v1_projected = proj * v1_transformed;
@@ -44,20 +46,22 @@ fn render_mesh(mesh: &Mesh, transform: Mat4) {
         let v3_projected = proj * v3_transformed;
 
         // Compute light intensity.
-        let light_intensity = -normal_transformed.dot(LIGHT_DIRECTION);
+        let light_intensity = -normal_transformed
+            .map(|n| n.dot(LIGHT_DIRECTION))
+            .unwrap_or(-1.0);
 
         draw_triangle(
             transform_viewport(v1_projected.xy() / v1_projected.w),
             transform_viewport(v2_projected.xy() / v2_projected.w),
             transform_viewport(v3_projected.xy() / v3_projected.w),
-            Color::from_vec(Vec3::extend(Vec3::ONE * light_intensity, 1.0))
+            Color::from_vec(Vec3::extend(Vec3::ONE * light_intensity, 1.0)),
         );
     }
 }
 
 #[macroquad::main("3D Graphics Engine")]
 async fn main() {
-    let source = std::fs::read_to_string("ship.obj").unwrap();
+    let source = std::fs::read_to_string("ship-better.obj").unwrap();
     let cube_mesh = mesh::parse_wavefront(&source);
     let cube_translation = Mat4::from_translation(Vec3::new(0.0, 0.0, -10.0));
 
