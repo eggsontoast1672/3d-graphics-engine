@@ -4,16 +4,10 @@
 #include <GLFW/glfw3.h>
 
 #include "engine/image.h"
+#include "engine/mesh.h"
 #include "engine/shader.h"
 #include "engine/texture.h"
-
-const float vertices[] = {
-    -1.0f, 1.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, 0.0f, 0.0f,
-    1.0f, -1.0f, 1.0f, 0.0f};
-
-const unsigned int indices[] = {0, 1, 2, 1, 2, 3};
+#include "engine/window.h"
 
 const char *const vertex_source =
     "#version 330 core\n"
@@ -36,11 +30,6 @@ const char *const fragment_source =
     "   f_color = texture(u_texture, v_tex_coord);\n"
     "}\n";
 
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
 static void image_palette_test(const Image *image)
 {
     for (size_t y = 0; y < image->height; y++)
@@ -58,50 +47,9 @@ static void image_palette_test(const Image *image)
 
 int main()
 {
-    if (!glfwInit())
-    {
-        fprintf(stderr, "Failed to initialize GLFW\n");
-        return 1;
-    }
+    GLFWwindow *window = init_and_create_window(800, 600, "3D Graphics Engine");
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow *window = glfwCreateWindow(800, 600, "3D Graphics Engine", NULL, NULL);
-    if (window == NULL)
-    {
-        fprintf(stderr, "Failed to create window\n");
-        glfwTerminate();
-        return 1;
-    }
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    glfwMakeContextCurrent(window);
-    glewInit();
-
-    GLuint vao;
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    GLuint vbo;
-
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof vertices, vertices, GL_STATIC_DRAW);
-
-    GLuint ibo;
-
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof indices, indices, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float[4]), 0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float[4]), (void *)sizeof(float[2]));
+    mesh_quad_init();
 
     GLuint program = shader_create(vertex_source, fragment_source);
     GLuint texture = texture_create();
@@ -109,7 +57,6 @@ int main()
     Image image;
     image_create(256, 256, &image);
     image_palette_test(&image);
-    image_dump_to_ppm(&image, "test_image.ppm");
     glBindTexture(GL_TEXTURE_2D, texture);
     texture_set_data(&image);
 
@@ -125,9 +72,6 @@ int main()
     image_delete(&image);
     glDeleteTextures(1, &texture);
     glDeleteProgram(program);
-    glDeleteBuffers(1, &ibo);
-    glDeleteBuffers(1, &vbo);
-    glDeleteVertexArrays(1, &vao);
-
+    mesh_quad_deinit();
     glfwTerminate();
 }
