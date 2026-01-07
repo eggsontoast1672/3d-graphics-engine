@@ -13,3 +13,8 @@ GLuint texture_create(void)
 
     return texture;
 }
+
+void texture_set_data(const Image *image)
+{
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+}

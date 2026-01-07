@@ -18,17 +18,22 @@ const unsigned int indices[] = {0, 1, 2, 1, 2, 3};
 const char *const vertex_source =
     "#version 330 core\n"
     "layout (location = 0) in vec2 position;\n"
+    "layout (location = 1) in vec2 tex_coord;\n"
+    "out vec2 v_tex_coord;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(position, 0.0f, 1.0f);\n"
+    "   v_tex_coord = tex_coord;\n"
     "}\n";
 
 const char *const fragment_source =
     "#version 330 core\n"
+    "in vec2 v_tex_coord;\n"
     "out vec4 f_color;\n"
+    "uniform sampler2D u_texture;\n"
     "void main()\n"
     "{\n"
-    "   f_color = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
+    "   f_color = texture(u_texture, v_tex_coord);\n"
     "}\n";
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -101,6 +106,13 @@ int main()
     GLuint program = shader_create(vertex_source, fragment_source);
     GLuint texture = texture_create();
 
+    Image image;
+    image_create(256, 256, &image);
+    image_palette_test(&image);
+    image_dump_to_ppm(&image, "test_image.ppm");
+    glBindTexture(GL_TEXTURE_2D, texture);
+    texture_set_data(&image);
+
     while (!glfwWindowShouldClose(window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
@@ -110,6 +122,7 @@ int main()
         glfwPollEvents();
     }
 
+    image_delete(&image);
     glDeleteTextures(1, &texture);
     glDeleteProgram(program);
     glDeleteBuffers(1, &ibo);
