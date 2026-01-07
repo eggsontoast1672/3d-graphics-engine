@@ -1,7 +1,14 @@
+#include <iostream>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-constexpr float vertices[] = {-1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f};
+constexpr float vertices[] = {
+    -1.0f, 1.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f,
+    1.0f, -1.0f, 1.0f, 0.0f};
+
 constexpr unsigned int indices[] = {0, 1, 2, 1, 2, 3};
 
 constexpr const char *vertex_source = R"glsl(#version 330 core
@@ -26,12 +33,23 @@ void main()
 
 int main()
 {
-    glfwInit();
+    if (!glfwInit())
+    {
+        std::cerr << "Failed to initialize GLFW\n";
+        return 1;
+    }
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLFWwindow *window = glfwCreateWindow(800, 600, "3D Graphics Engine", nullptr, nullptr);
+    if (window == nullptr)
+    {
+        std::cerr << "Failed to create window\n";
+        glfwTerminate();
+        return 1;
+    }
 
     glfwSetFramebufferSizeCallback(window, [](GLFWwindow *window, int width, int height)
                                    { glViewport(0, 0, width, height); });
@@ -83,6 +101,11 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    glDeleteProgram(program);
+    glDeleteBuffers(1, &ibo);
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
 
     glfwTerminate();
 }
