@@ -1,16 +1,26 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(3DGraphicsEngine LANGUAGES CXX)
+project(3DGraphicsEngine LANGUAGES C)
 
 find_package(PkgConfig)
 
 pkg_check_modules(GLEW REQUIRED glew)
 pkg_check_modules(GLFW REQUIRED glfw3)
 
-add_executable(engine src/main.cpp)
+add_executable(
+  engine
+  include/engine/image.h
+  include/engine/shader.h
+  include/engine/texture.h
+  src/image.c
+  src/main.c
+  src/shader.c
+  src/texture.c
+)
 
-set_property(TARGET engine PROPERTY CXX_STANDARD 17)
-set_property(TARGET engine PROPERTY CXX_STANDARD_REQUIRED OFF)
-set_property(TARGET engine PROPERTY CXX_EXTENSIONS OFF)
+set_property(TARGET engine PROPERTY C_STANDARD 11)
+set_property(TARGET engine PROPERTY C_STANDARD_REQUIRED OFF)
+set_property(TARGET engine PROPERTY C_EXTENSIONS OFF)
 
+target_include_directories(engine PRIVATE include)
 target_link_libraries(engine PRIVATE ${GLEW_LIBRARIES} ${GLFW_LIBRARIES})
