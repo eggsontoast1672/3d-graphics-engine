@@ -59,7 +59,7 @@ static void configure_layout(void)
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float[4]), (void *)sizeof(float[2]));
 }
 
-void mesh_quad_init(void)
+void engine_mesh_init(void)
 {
     s_quad_mesh.vao = init_and_bind_vao();
     s_quad_mesh.vbo = init_and_bind_vbo();
@@ -68,7 +68,7 @@ void mesh_quad_init(void)
     configure_layout();
 }
 
-void mesh_quad_deinit(void)
+void engine_mesh_quit(void)
 {
     glDeleteBuffers(1, &s_quad_mesh.ebo);
     glDeleteBuffers(1, &s_quad_mesh.vbo);

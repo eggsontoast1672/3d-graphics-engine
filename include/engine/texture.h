@@ -1,8 +1,7 @@
 #pragma once
 
-#include <GL/glew.h>
-
 #include "engine/image.h"
 
-GLuint texture_create(void);
-void texture_set_data(const Image *image);
+void engine_texture_init(void);
+void engine_texture_quit(void);
+void engine_texture_set_data(const Image *image);

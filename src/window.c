@@ -1,36 +1,77 @@
 #include "engine/window.h"
 
+#include <stdio.h>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+static GLFWwindow *s_window = NULL;
+
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-GLFWwindow *init_and_create_window(int width, int height, const char *title)
+bool engine_window_init(int width, int height, const char *title)
 {
     if (!glfwInit())
     {
-        return NULL;
+        const char *description;
+        glfwGetError(&description);
+        fprintf(stderr, "Failed to initialize windowing system: %s\n", description);
+        return false;
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "3D Graphics Engine", NULL, NULL);
-    if (window == NULL)
+    s_window = glfwCreateWindow(width, height, title, NULL, NULL);
+    if (s_window == NULL)
     {
+        const char *description;
+        glfwGetError(&description);
+        fprintf(stderr, "Failed to create window: %s\n", description);
         glfwTerminate();
-        return NULL;
+        return false;
     }
 
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(s_window, framebuffer_size_callback);
+    glfwMakeContextCurrent(s_window);
 
-    if (glewInit() != GLEW_OK)
+    GLenum glew_result = glewInit();
+    if (glew_result != GLEW_OK)
     {
+        const GLubyte *error_string = glewGetErrorString(glew_result);
+        fprintf(stderr, "Failed to initialize OpenGL: %s\n", error_string);
         glfwTerminate();
-        return NULL;
+        return false;
     }
 
-    return window;
+    return true;
+}
+
+void engine_window_quit(void)
+{
+    glfwTerminate();
+}
+
+bool engine_window_should_close(void)
+{
+    return glfwWindowShouldClose(s_window);
+}
+
+void engine_window_clear(void)
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void engine_window_swap_buffers(void)
+{
+    glfwSwapBuffers(s_window);
+}
+
+void engine_window_poll_events(void)
+{
+    glfwPollEvents();
 }

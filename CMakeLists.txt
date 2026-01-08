@@ -9,11 +9,17 @@ pkg_check_modules(GLFW REQUIRED glfw3)
 
 add_executable(
   engine
+  include/engine/renderer/color.h
+  include/engine/renderer/renderer.h
+  include/engine/engine.h
   include/engine/image.h
   include/engine/mesh.h
   include/engine/shader.h
   include/engine/texture.h
   include/engine/window.h
+  src/renderer/color.c
+  src/renderer/renderer.c
+  src/engine.c
   src/image.c
   src/main.c
   src/mesh.c

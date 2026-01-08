@@ -1,5 +1,6 @@
 #pragma once
 
-#include <GL/glew.h>
+#include <stdbool.h>
 
-GLuint shader_create(const char *vertex_source, const char *fragment_source);
+bool engine_shader_init(void);
+void engine_shader_quit(void);

@@ -1,4 +1,4 @@
 #pragma once
 
-void mesh_quad_init(void);
-void mesh_quad_deinit(void);
+void engine_mesh_init(void);
+void engine_mesh_quit(void);

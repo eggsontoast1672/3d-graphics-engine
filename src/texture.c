@@ -1,20 +1,26 @@
 #include "engine/texture.h"
 
-GLuint texture_create(void)
-{
-    GLuint texture;
+#include <GL/glew.h>
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+static GLuint s_texture_id = 0;
+
+void engine_texture_init(void)
+{
+    glGenTextures(1, &s_texture_id);
+    glBindTexture(GL_TEXTURE_2D, s_texture_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    return texture;
 }
 
-void texture_set_data(const Image *image)
+void engine_texture_quit(void)
 {
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+    glDeleteTextures(1, &s_texture_id);
+}
+
+void engine_texture_set_data(const Image *image)
+{
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->data);
 }

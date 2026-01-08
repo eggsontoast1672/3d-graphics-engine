@@ -19,13 +19,19 @@ bool image_create(int width, int height, Image *image)
     return true;
 }
 
-void image_set_pixel(const Image *image, size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b)
+bool image_set_pixel(const Image *image, size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b)
 {
+#ifndef NDEBUG
+    if (image == NULL || x >= image->width || y >= image->height) return false;
+#endif
+
     size_t index = (y * image->width + x) * 3;
 
     image->data[index] = r;
     image->data[index + 1] = g;
     image->data[index + 2] = b;
+
+    return true;
 }
 
 bool image_dump_to_ppm(const Image *image, const char *path)
