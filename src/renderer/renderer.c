@@ -21,13 +21,7 @@ void renderer_quit(void)
 
 void renderer_clear(Color color)
 {
-    for (int y = 0; y < s_buffer.height; y++)
-    {
-        for (int x = 0; x < s_buffer.width; x++)
-        {
-            renderer_fill_pixel(x, y, color);
-        }
-    }
+    renderer_fill_rect(0, 0, s_buffer.width, s_buffer.height, color);
 }
 
 void renderer_fill_pixel(int x, int y, Color color)
@@ -38,6 +32,17 @@ void renderer_fill_pixel(int x, int y, Color color)
     s_buffer.data[index] = color.r;
     s_buffer.data[index + 1] = color.g;
     s_buffer.data[index + 2] = color.b;
+}
+
+void renderer_fill_rect(int x1, int x2, int y1, int y2, Color color)
+{
+    for (int y = y1; y < y2; y++)
+    {
+        for (int x = x1; x < x2; x++)
+        {
+            renderer_fill_pixel(x, y, color);
+        }
+    }
 }
 
 void renderer_display(void)

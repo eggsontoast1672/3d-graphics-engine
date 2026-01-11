@@ -2,6 +2,8 @@
 
 #include <GL/glew.h>
 
+#define INFO_LOG_SIZE 1024
+
 const char *const vertex_source =
     "#version 330 core\n"
     "layout (location = 0) in vec2 position;\n"
@@ -25,28 +27,82 @@ const char *const fragment_source =
 
 static GLuint s_program_id = 0;
 
-static GLuint create_shader(GLenum type, const char *source)
+static ShaderResult create_shader(GLenum type, const char *source)
 {
     GLuint shader = glCreateShader(type);
 
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
 
-    return shader;
+    GLint status;
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+
+    if (status == 0)
+    {
+        static char info_log[INFO_LOG_SIZE];
+
+        glGetShaderInfoLog(shader, INFO_LOG_SIZE, NULL, info_log);
+
+        ShaderResult result;
+
+        result.succeeded = false;
+        result.error.kind = SHADER_ERROR_COMPILE;
+        result.error.shader_type = type;
+        result.error.file_path = "<source>";
+        result.error.info_log = info_log;
+
+        return result;
+    }
+
+    ShaderResult result;
+
+    result.succeeded = true;
+    result.handle = shader;
+
+    return result;
 }
 
-bool engine_shader_init(void)
+ShaderResult engine_shader_init(void)
 {
-    GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_source);
-    GLuint fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_source);
+    ShaderResult vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_source);
+    ShaderResult fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_source);
+
+    if (!vertex_shader.succeeded) return vertex_shader;
+    if (!fragment_shader.succeeded) return fragment_shader;
 
     s_program_id = glCreateProgram();
 
-    glAttachShader(s_program_id, vertex_shader);
-    glAttachShader(s_program_id, fragment_shader);
+    glAttachShader(s_program_id, vertex_shader.handle);
+    glAttachShader(s_program_id, fragment_shader.handle);
     glLinkProgram(s_program_id);
 
-    return true;
+    GLint status;
+
+    glGetProgramiv(s_program_id, GL_LINK_STATUS, &status);
+
+    if (status == 0)
+    {
+        static char info_log[INFO_LOG_SIZE];
+
+        glGetProgramInfoLog(s_program_id, INFO_LOG_SIZE, NULL, info_log);
+
+        ShaderResult result;
+
+        result.succeeded = false;
+        result.error.kind = SHADER_ERROR_LINK;
+        result.error.file_path = "<source>";
+        result.error.info_log = info_log;
+
+        return result;
+    }
+
+    ShaderResult result;
+
+    result.succeeded = true;
+    result.handle = s_program_id;
+
+    return result;
 }
 
 void engine_shader_quit(void)

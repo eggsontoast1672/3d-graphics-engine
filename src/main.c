@@ -1,4 +1,5 @@
 #include <GL/glew.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include "engine/engine.h"
@@ -7,7 +8,7 @@
 static void update_callback(void *user_data)
 {
     renderer_clear(COLOR_BLACK);
-    renderer_fill_pixel(100, 100, COLOR_RED);
+    renderer_fill_rect(100, 100, 200, 200, COLOR_RED);
     renderer_display();
 }
 
@@ -17,18 +18,4 @@ int main()
     engine_set_update_callback(update_callback);
     engine_run();
     engine_quit();
-
-    // Image image;
-    // image_create(256, 256, &image);
-    // glBindTexture(GL_TEXTURE_2D, texture);
-    // texture_set_data(&image);
-
-    // while (!glfwWindowShouldClose(window))
-    // {
-    //     glClear(GL_COLOR_BUFFER_BIT);
-    //     glUseProgram(program);
-    //     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-    //     glfwSwapBuffers(window);
-    //     glfwPollEvents();
-    // }
 }
