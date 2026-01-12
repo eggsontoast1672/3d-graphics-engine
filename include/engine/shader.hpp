@@ -1,31 +1,30 @@
 #pragma once
 
-#include <stdbool.h>
-
 #include <GL/glew.h>
 
-typedef struct
+class ShaderProgram
 {
-    bool succeeded;
+public:
+    /// Construct a shader program.
+    ///
+    /// The vertex and fragment source are taken by pointer to const char since
+    /// the OpenGL API accepts null terminated source. Using a `const std::string&`
+    /// would require that a string object be constructed at some point,
+    /// and using a `std::string_view` would not guarantee null termination.
+    ///
+    /// The shader program object does not get bound by default, so in order to
+    /// use this program after construction, one must call the `use` method.
+    ShaderProgram(const char* vertex_source, const char* fragment_source);
 
-    union
-    {
-        GLuint handle;
+    /// Destruct the shader program.
+    ~ShaderProgram();
 
-        struct
-        {
-            enum
-            {
-                SHADER_ERROR_COMPILE,
-                SHADER_ERROR_LINK,
-            } kind;
+    /// Bind this shader program object.
+    void use() const;
 
-            GLenum shader_type;
-            const char *file_path;
-            const char *info_log;
-        } error;
-    };
-} ShaderResult;
+private:
+    GLuint m_id;
 
-ShaderResult engine_shader_init(void);
-void engine_shader_quit(void);
+    /// Check for link time errors.
+    void check_link_errors() const;
+};

@@ -1,10 +1,9 @@
-#include "engine/shader.h"
+#include "engine/shader.hpp"
 
-#include <GL/glew.h>
+#include <stdexcept>
+#include <string>
 
-#define INFO_LOG_SIZE 1024
-
-const char *const vertex_source =
+const char* const vertex_source =
     "#version 330 core\n"
     "layout (location = 0) in vec2 position;\n"
     "layout (location = 1) in vec2 tex_coord;\n"
@@ -15,7 +14,7 @@ const char *const vertex_source =
     "   v_tex_coord = tex_coord;\n"
     "}\n";
 
-const char *const fragment_source =
+const char* const fragment_source =
     "#version 330 core\n"
     "in vec2 v_tex_coord;\n"
     "out vec4 f_color;\n"
@@ -25,87 +24,64 @@ const char *const fragment_source =
     "   f_color = texture(u_texture, v_tex_coord);\n"
     "}\n";
 
-static GLuint s_program_id = 0;
-
-static ShaderResult create_shader(GLenum type, const char *source)
+static void check_compile_errors(GLuint shader)
 {
-    GLuint shader = glCreateShader(type);
-
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-
     GLint status;
-
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
     if (status == 0)
     {
-        static char info_log[INFO_LOG_SIZE];
+        GLint info_log_length;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &info_log_length);
+        std::string info_log(static_cast<std::size_t>(info_log_length), '\0');
+        glGetShaderInfoLog(shader, info_log.size(), nullptr, info_log.data());
 
-        glGetShaderInfoLog(shader, INFO_LOG_SIZE, NULL, info_log);
-
-        ShaderResult result;
-
-        result.succeeded = false;
-        result.error.kind = SHADER_ERROR_COMPILE;
-        result.error.shader_type = type;
-        result.error.file_path = "<source>";
-        result.error.info_log = info_log;
-
-        return result;
+        throw std::runtime_error(info_log);
     }
-
-    ShaderResult result;
-
-    result.succeeded = true;
-    result.handle = shader;
-
-    return result;
 }
 
-ShaderResult engine_shader_init(void)
+/// Create a shader object.
+static GLuint create_shader(GLenum type, const char* source)
 {
-    ShaderResult vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_source);
-    ShaderResult fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_source);
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
 
-    if (!vertex_shader.succeeded) return vertex_shader;
-    if (!fragment_shader.succeeded) return fragment_shader;
+    check_compile_errors(shader);
 
-    s_program_id = glCreateProgram();
+    return shader;
+}
 
-    glAttachShader(s_program_id, vertex_shader.handle);
-    glAttachShader(s_program_id, fragment_shader.handle);
-    glLinkProgram(s_program_id);
+ShaderProgram::ShaderProgram(const char* vertex_source, const char* fragment_source)
+{
+    GLuint vertex_shader = create_shader(GL_VERTEX_SHADER, vertex_source);
+    GLuint fragment_shader = create_shader(GL_FRAGMENT_SHADER, fragment_source);
 
+    m_id = glCreateProgram();
+    glAttachShader(m_id, vertex_shader);
+    glAttachShader(m_id, fragment_shader);
+    glLinkProgram(m_id);
+
+    check_link_errors();
+}
+
+ShaderProgram::~ShaderProgram()
+{
+    glDeleteProgram(m_id);
+}
+
+void ShaderProgram::check_link_errors() const
+{
     GLint status;
-
-    glGetProgramiv(s_program_id, GL_LINK_STATUS, &status);
+    glGetProgramiv(m_id, GL_LINK_STATUS, &status);
 
     if (status == 0)
     {
-        static char info_log[INFO_LOG_SIZE];
+        GLint info_log_length;
+        glGetProgramiv(m_id, GL_INFO_LOG_LENGTH, &info_log_length);
+        std::string info_log(static_cast<std::size_t>(info_log_length), '\0');
+        glGetProgramInfoLog(m_id, info_log.size(), nullptr, info_log.data());
 
-        glGetProgramInfoLog(s_program_id, INFO_LOG_SIZE, NULL, info_log);
-
-        ShaderResult result;
-
-        result.succeeded = false;
-        result.error.kind = SHADER_ERROR_LINK;
-        result.error.file_path = "<source>";
-        result.error.info_log = info_log;
-
-        return result;
+        throw std::runtime_error(info_log);
     }
-
-    ShaderResult result;
-
-    result.succeeded = true;
-    result.handle = s_program_id;
-
-    return result;
-}
-
-void engine_shader_quit(void)
-{
-    glDeleteProgram(s_program_id);
 }
