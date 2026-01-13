@@ -50,21 +50,46 @@ namespace rasp
         const int dx = x1 - x0;
         const int dy = y1 - y0;
 
-        int d = 2 * dy - dx;
-        int y = y0;
-
-        for (int x = x0; x < x1; x++)
+        if (dy < dx) // The line is not steep (slope between -1 and 1)
         {
-            fill_pixel(x, y, color);
+            int d = 2 * dy - dx;
+            int y = y0;
 
-            if (d > 0)
+            for (int x = x0; x <= x1; x++)
             {
-                y = y + 1;
-                d = d + (2 * (dy - dx));
+                fill_pixel(x, y, color);
+
+                if (d > 0)
+                {
+                    y = y + 1;
+                    d = d + (2 * (dy - dx));
+                }
+                else
+                {
+                    d = d + 2 * dy;
+                }
             }
-            else
+        }
+
+        // Line is steep (slope greater than 1 or less than -1)
+        else
+        {
+            int d = 2 * dx - dy;
+            int x = x0;
+
+            for (int y = y0; y <= y1; y++)
             {
-                d = d + 2 * dy;
+                fill_pixel(x, y, color);
+
+                if (d > 0)
+                {
+                    x = x + 1;
+                    d = d + (2 * (dx - dy));
+                }
+                else
+                {
+                    d = d + 2 * dx;
+                }
             }
         }
     }
