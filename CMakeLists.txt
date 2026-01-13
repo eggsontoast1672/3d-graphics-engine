@@ -8,22 +8,9 @@ pkg_check_modules(SDL3 REQUIRED sdl3)
 
 add_executable(
   engine
-  # include/engine/renderer/color.hpp
-  # include/engine/renderer/renderer.hpp
-  # include/engine/engine.hpp
-  # include/engine/image.hpp
-  # include/engine/mesh.hpp
-  # include/engine/shader.hpp
-  # include/engine/texture.hpp
-  # include/engine/window.hpp
-  # src/renderer/renderer.cpp
-  # src/engine.cpp
-  # src/image.cpp
+  include/raspberry/renderer.hpp
   src/main.cpp
-  # src/mesh.cpp
-  # src/shader.cpp
-  # src/texture.cpp
-  # src/window.cpp
+  src/renderer.cpp
 )
 
 set_property(TARGET engine PROPERTY CXX_STANDARD 17)
