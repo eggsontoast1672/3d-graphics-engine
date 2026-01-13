@@ -11,11 +11,13 @@ namespace rasp
     {
         SDL_Init(SDL_INIT_VIDEO);
 
-        m_window = SDL_CreateWindow(title, width, height, 0);
+        m_window = SDL_CreateWindow(title, width * 4, height * 4, 0);
         m_renderer = SDL_CreateRenderer(m_window, nullptr);
         m_texture = SDL_CreateTexture(
             m_renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING,
             width, height);
+
+        SDL_SetTextureScaleMode(m_texture, SDL_SCALEMODE_NEAREST);
     }
 
     Renderer::~Renderer()
