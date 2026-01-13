@@ -1,11 +1,12 @@
 #include "raspberry/renderer.hpp"
 
 #include <cstdlib>
+#include <cstring>
 #include <utility>
 
 namespace rasp
 {
-    Renderer::Renderer(const char* title, std::uint16_t width, std::uint16_t height)
+    Renderer::Renderer(const char* title, u16 width, u16 height)
         : m_logical_width(width),
           m_logical_height(height),
           m_frame_buffer(static_cast<decltype(m_frame_buffer)::size_type>(width * height * 3))
@@ -28,7 +29,7 @@ namespace rasp
         SDL_DestroyWindow(m_window);
     }
 
-    void Renderer::fill_pixel(std::size_t x, std::size_t y, Color color)
+    void Renderer::fill_pixel(u16 x, u16 y, Color color)
     {
         const std::size_t index = (y * m_logical_width + x) * 3;
 
@@ -37,18 +38,18 @@ namespace rasp
         m_frame_buffer.at(index + 2) = color.b;
     }
 
-    void Renderer::fill_rect(std::size_t x1, std::size_t y1, std::size_t x2, std::size_t y2, Color color)
+    void Renderer::fill_rect(u16 x0, u16 y0, u16 x1, u16 y1, Color color)
     {
-        for (std::size_t y = y1; y < y2; y++)
+        for (u16 y = y0; y <= y1; y++)
         {
-            for (std::size_t x = x1; x < x2; x++)
+            for (u16 x = x0; x <= x1; x++)
             {
                 fill_pixel(x, y, color);
             }
         }
     }
 
-    void Renderer::draw_horizontal_line(int x0, int y0, int x1, int y1, Color color)
+    void Renderer::draw_horizontal_line(u16 x0, u16 y0, u16 x1, u16 y1, Color color)
     {
         if (x0 > x1)
         {
@@ -56,15 +57,15 @@ namespace rasp
             std::swap(y0, y1);
         }
 
-        const int dx = x1 - x0;
-        int dy = y1 - y0;
-        const int dir = dy < 0 ? -1 : 1;
+        const i32 dx = x1 - x0;
+        i32 dy = y1 - y0;
+        const i32 dir = dy < 0 ? -1 : 1;
         dy *= dir;
 
-        int y = y0;
-        int d = 2 * dy - dx;
+        i32 y = y0;
+        i32 d = 2 * dy - dx;
 
-        for (int x = x0; x <= x1; x++)
+        for (i32 x = x0; x <= x1; x++)
         {
             fill_pixel(x, y, color);
 
@@ -78,7 +79,7 @@ namespace rasp
         }
     }
 
-    void Renderer::draw_vertical_line(int x0, int y0, int x1, int y1, Color color)
+    void Renderer::draw_vertical_line(u16 x0, u16 y0, u16 x1, u16 y1, Color color)
     {
         if (y0 > y1)
         {
@@ -86,15 +87,15 @@ namespace rasp
             std::swap(y0, y1);
         }
 
-        int dx = x1 - x0;
-        const int dy = y1 - y0;
-        const int dir = dx < 0 ? -1 : 1;
+        i32 dx = x1 - x0;
+        const i32 dy = y1 - y0;
+        const i32 dir = dx < 0 ? -1 : 1;
         dx *= dir;
 
-        int x = x0;
-        int d = 2 * dx - dy;
+        i32 x = x0;
+        i32 d = 2 * dx - dy;
 
-        for (int y = y0; y <= y1; y++)
+        for (i32 y = y0; y <= y1; y++)
         {
             fill_pixel(x, y, color);
 
@@ -108,7 +109,7 @@ namespace rasp
         }
     }
 
-    void Renderer::draw_line(int x0, int y0, int x1, int y1, Color color)
+    void Renderer::draw_line(u16 x0, u16 y0, u16 x1, u16 y1, Color color)
     {
         if (std::abs(x0 - x1) > std::abs(y0 - y1))
         {
@@ -122,7 +123,7 @@ namespace rasp
 
     void Renderer::clear(Color color)
     {
-        fill_rect(0, 0, m_logical_width, m_logical_height, color);
+        fill_rect(0, 0, m_logical_width - 1, m_logical_height - 1, color);
     }
 
     void Renderer::display()
