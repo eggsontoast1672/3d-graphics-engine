@@ -23,6 +23,12 @@ namespace rasp
 
         void fill_pixel(std::size_t x, std::size_t y, Color color);
         void fill_rect(std::size_t x1, std::size_t y1, std::size_t x2, std::size_t y2, Color color);
+
+    private:
+        void draw_horizontal_line(int x0, int y0, int x1, int y1, Color color);
+        void draw_vertical_line(int x0, int y0, int x1, int y1, Color color);
+
+    public:
         void draw_line(int x1, int y1, int x2, int y2, Color color);
         void clear(Color color);
         void display();

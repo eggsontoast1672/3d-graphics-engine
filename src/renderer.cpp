@@ -1,6 +1,7 @@
 #include "raspberry/renderer.hpp"
 
 #include <cstdlib>
+#include <utility>
 
 namespace rasp
 {
@@ -47,52 +48,75 @@ namespace rasp
         }
     }
 
-    void Renderer::draw_line(int x0, int y0, int x1, int y1, Color color)
+    void Renderer::draw_horizontal_line(int x0, int y0, int x1, int y1, Color color)
     {
-        const int dx = x1 - x0;
-        const int dy = y1 - y0;
-
-        if (dy < dx) // The line is not steep (slope between -1 and 1)
+        if (x0 > x1)
         {
-            int d = 2 * dy - dx;
-            int y = y0;
-
-            for (int x = x0; x <= x1; x++)
-            {
-                fill_pixel(x, y, color);
-
-                if (d > 0)
-                {
-                    y = y + 1;
-                    d = d + (2 * (dy - dx));
-                }
-                else
-                {
-                    d = d + 2 * dy;
-                }
-            }
+            std::swap(x0, x1);
+            std::swap(y0, y1);
         }
 
-        // Line is steep (slope greater than 1 or less than -1)
+        const int dx = x1 - x0;
+        int dy = y1 - y0;
+        const int dir = dy < 0 ? -1 : 1;
+        dy *= dir;
+
+        int y = y0;
+        int d = 2 * dy - dx;
+
+        for (int x = x0; x <= x1; x++)
+        {
+            fill_pixel(x, y, color);
+
+            if (d >= 0)
+            {
+                y += dir;
+                d -= 2 * dx;
+            }
+
+            d += 2 * dy;
+        }
+    }
+
+    void Renderer::draw_vertical_line(int x0, int y0, int x1, int y1, Color color)
+    {
+        if (y0 > y1)
+        {
+            std::swap(x0, x1);
+            std::swap(y0, y1);
+        }
+
+        int dx = x1 - x0;
+        const int dy = y1 - y0;
+        const int dir = dx < 0 ? -1 : 1;
+        dx *= dir;
+
+        int x = x0;
+        int d = 2 * dx - dy;
+
+        for (int y = y0; y <= y1; y++)
+        {
+            fill_pixel(x, y, color);
+
+            if (d >= 0)
+            {
+                x += dir;
+                d -= 2 * dy;
+            }
+
+            d += 2 * dx;
+        }
+    }
+
+    void Renderer::draw_line(int x0, int y0, int x1, int y1, Color color)
+    {
+        if (std::abs(x0 - x1) > std::abs(y0 - y1))
+        {
+            draw_horizontal_line(x0, y0, x1, y1, color);
+        }
         else
         {
-            int d = 2 * dx - dy;
-            int x = x0;
-
-            for (int y = y0; y <= y1; y++)
-            {
-                fill_pixel(x, y, color);
-
-                if (d > 0)
-                {
-                    x = x + 1;
-                    d = d + (2 * (dx - dy));
-                }
-                else
-                {
-                    d = d + 2 * dx;
-                }
-            }
+            draw_vertical_line(x0, y0, x1, y1, color);
         }
     }
 
