@@ -1,12 +1,17 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
-typedef struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-} Color;
+namespace rasp
+{
+    /// An RGB color.
+    struct Color
+    {
+        std::uint8_t r;
+        std::uint8_t g;
+        std::uint8_t b;
+    };
 
-extern const Color COLOR_BLACK;
-extern const Color COLOR_RED;
+    constexpr Color COLOR_BLACK = {0x00, 0x00, 0x00};
+    constexpr Color COLOR_RED = {0xff, 0x00, 0x00};
+}

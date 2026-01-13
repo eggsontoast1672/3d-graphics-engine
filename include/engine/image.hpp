@@ -1,18 +1,41 @@
 #pragma once
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <cstdint>
+#include <filesystem>
+#include <vector>
 
-#define IMAGE_BYTE_COUNT(image) ((image).width * (image).height * 3)
+namespace rasp
+{
+    struct Color;
 
-typedef struct {
-    int width;
-    int height;
-    uint8_t *data;
-} Image;
+    /// An in-memory buffer of RGB pixel data.
+    class Image
+    {
+    public:
+        /// Create a blank image with the specified dimensions.
+        Image(int width, int height);
 
-bool image_create(int width, int height, Image *image);
-bool image_set_pixel(const Image *image, size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b);
-bool image_dump_to_ppm(const Image *image, const char *path);
-void image_delete(Image *image);
+        /// Get the width of the image.
+        int get_width() const;
+
+        /// Get the height of the image.
+        int get_height() const;
+
+        /// Get the pixel data.
+        const std::uint8_t* get_pixels() const;
+
+        /// Set a pixel of the image to the specified color.
+        ///
+        /// If the location of the pixel is outside of the bounds of the image,
+        /// a `std::out_of_range` exception is thrown.
+        void set_pixel(std::size_t x, std::size_t y, Color color);
+
+        /// Dump the image data to a PPM file.
+        void dump_to_ppm(const std::filesystem::path& path) const;
+
+    private:
+        int m_width;
+        int m_height;
+        std::vector<std::uint8_t> m_pixels;
+    };
+}

@@ -1,51 +1,37 @@
-#include "engine/renderer/renderer.h"
+#include "engine/renderer/renderer.hpp"
 
-#include "engine/image.h"
-#include "engine/texture.h"
-#include "engine/renderer/color.h"
+#include "engine/image.hpp"
+#include "engine/renderer/color.hpp"
+#include "engine/texture.hpp"
 
-/**
- * The renderer frame buffer.
- */
-static Image s_buffer = {0};
-
-bool renderer_init(int width, int height)
+namespace rasp
 {
-    return image_create(width, height, &s_buffer);
-}
-
-void renderer_quit(void)
-{
-    image_delete(&s_buffer);
-}
-
-void renderer_clear(Color color)
-{
-    renderer_fill_rect(0, 0, s_buffer.width, s_buffer.height, color);
-}
-
-void renderer_fill_pixel(int x, int y, Color color)
-{
-    // We do not perform any bounds checking on the index for speed reasons.
-    int index = (y * s_buffer.width + x) * 3;
-
-    s_buffer.data[index] = color.r;
-    s_buffer.data[index + 1] = color.g;
-    s_buffer.data[index + 2] = color.b;
-}
-
-void renderer_fill_rect(int x1, int x2, int y1, int y2, Color color)
-{
-    for (int y = y1; y < y2; y++)
+    Renderer::Renderer(int width, int height)
+        : m_framebuffer(width, height)
     {
-        for (int x = x1; x < x2; x++)
+    }
+
+    void Renderer::clear(Color color)
+    {
+        const int width = m_framebuffer.get_width();
+        const int height = m_framebuffer.get_height();
+
+        fill_rect(0, 0, width, height, color);
+    }
+
+    void Renderer::fill_pixel(int x, int y, Color color)
+    {
+        m_framebuffer.set_pixel(x, y, color);
+    }
+
+    void Renderer::fill_rect(int x1, int x2, int y1, int y2, Color color)
+    {
+        for (int y = y1; y < y2; y++)
         {
-            renderer_fill_pixel(x, y, color);
+            for (int x = x1; x < x2; x++)
+            {
+                fill_pixel(x, y, color);
+            }
         }
     }
-}
-
-void renderer_display(void)
-{
-    engine_texture_set_data(&s_buffer);
 }

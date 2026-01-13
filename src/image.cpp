@@ -1,68 +1,38 @@
-#include "engine/image.h"
+#include "engine/image.hpp"
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <fstream>
 
-bool image_create(int width, int height, Image *image)
+namespace rasp
 {
-    uint8_t *const data = calloc(width * height * 3, 1);
-    if (data == NULL)
+    Image::Image(int width, int height)
+        : m_width(width),
+          m_height(height),
+          m_pixels(static_cast<decltype(m_pixels)::size_type>(width * height * 3))
     {
-        return false;
     }
 
-    image->width = width;
-    image->height = height;
-    image->data = data;
-
-    return true;
-}
-
-bool image_set_pixel(const Image *image, size_t x, size_t y, uint8_t r, uint8_t g, uint8_t b)
-{
-#ifndef NDEBUG
-    if (image == NULL || x >= image->width || y >= image->height) return false;
-#endif
-
-    size_t index = (y * image->width + x) * 3;
-
-    image->data[index] = r;
-    image->data[index + 1] = g;
-    image->data[index + 2] = b;
-
-    return true;
-}
-
-bool image_dump_to_ppm(const Image *image, const char *path)
-{
-    FILE *file = fopen(path, "w");
-    if (file == NULL)
+    void Image::set_pixel(std::size_t x, std::size_t y, Color color)
     {
-        return false;
+        const std::size_t index = (y * m_width + x) * 3;
+
+        m_pixels.at(index) = color.r;
+        m_pixels.at(index + 1) = color.g;
+        m_pixels.at(index + 2) = color.b;
     }
 
-    fprintf(file, "P3\n%d %d\n255\n", image->width, image->height);
-
-    for (size_t i = 0; i < image->width * image->height * 3; i += 3)
+    void Image::dump_to_ppm(const std::filesystem::path &path) const
     {
-        uint8_t r = image->data[i];
-        uint8_t g = image->data[i + 1];
-        uint8_t b = image->data[i + 2];
+        std::ofstream file(path);
 
-        fprintf(file, "%uhh %uhh %uhh\n", r, g, b);
+        file << "P3\n" << m_width << ' ' << m_height << "\n255\n";
+
+        for (std::size_t i = 0; i < m_width * m_height * 3; i += 3)
+        {
+            std::uint8_t r = m_pixels[i];
+            std::uint8_t g = m_pixels[i + 1];
+            std::uint8_t b = m_pixels[i + 2];
+
+            file << r << ' ' << g << ' ' << b << '\n';
+        }
     }
-
-    fclose(file);
-
-    return true;
-}
-
-void image_delete(Image *image)
-{
-    free(image->data);
-
-    image->width = 0;
-    image->height = 0;
-    image->data = NULL;
 }

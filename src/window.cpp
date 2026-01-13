@@ -1,78 +1,69 @@
-#include "engine/window.h"
+#include "engine/window.hpp"
 
-#include <stdio.h>
+#include <stdexcept>
 
 #include <GL/glew.h>
-#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-static GLFWwindow *s_window = NULL;
-
-static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+namespace rasp
 {
-    glViewport(0, 0, width, height);
-}
-
-bool engine_window_init(int width, int height, const char *title)
-{
-    if (!glfwInit())
+    static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     {
-        const char *description;
-        glfwGetError(&description);
-        fprintf(stderr, "Failed to initialize windowing system: %s\n", description);
-        return false;
+        glViewport(0, 0, width, height);
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    s_window = glfwCreateWindow(width, height, title, NULL, NULL);
-    if (s_window == NULL)
+    Window::Window(int width, int height, const char* title)
     {
-        const char *description;
-        glfwGetError(&description);
-        fprintf(stderr, "Failed to create window: %s\n", description);
-        glfwTerminate();
-        return false;
+        if (!glfwInit())
+        {
+            const char* description;
+            glfwGetError(&description);
+            throw std::runtime_error(description);
+        }
+
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+        m_window = std::unique_ptr<GLFWwindow, Deleter>(glfwCreateWindow(width, height, title, NULL, NULL));
+        if (!m_window)
+        {
+            const char* description;
+            glfwGetError(&description);
+            glfwTerminate();
+            throw std::runtime_error(description);
+        }
+
+        glfwSetFramebufferSizeCallback(m_window.get(), framebuffer_size_callback);
+        glfwMakeContextCurrent(m_window.get());
+
+        GLenum glew_result = glewInit();
+        if (glew_result != GLEW_OK)
+        {
+            const GLubyte* bytes = glewGetErrorString(glew_result);
+            const char* message = reinterpret_cast<const char*>(bytes);
+            glfwTerminate();
+            throw std::runtime_error(message);
+        }
     }
 
-    glfwSetFramebufferSizeCallback(s_window, framebuffer_size_callback);
-    glfwMakeContextCurrent(s_window);
-
-    GLenum glew_result = glewInit();
-    if (glew_result != GLEW_OK)
+    bool Window::should_close() const
     {
-        const GLubyte *error_string = glewGetErrorString(glew_result);
-        fprintf(stderr, "Failed to initialize OpenGL: %s\n", error_string);
-        glfwTerminate();
-        return false;
+        glfwPollEvents();
+        return glfwWindowShouldClose(m_window.get());
     }
 
-    return true;
-}
+    void Window::clear() const
+    {
+        /// There is an argument that this method should be static since it does
+        /// not depend on the state of this window object, but having the method
+        /// as non-static does guarantee that a window exists, and this a valid
+        /// OpenGL context exists.
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
 
-void engine_window_quit(void)
-{
-    glfwTerminate();
-}
-
-bool engine_window_should_close(void)
-{
-    return glfwWindowShouldClose(s_window);
-}
-
-void engine_window_clear(void)
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void engine_window_swap_buffers(void)
-{
-    glfwSwapBuffers(s_window);
-}
-
-void engine_window_poll_events(void)
-{
-    glfwPollEvents();
+    void Window::display() const
+    {
+        glfwSwapBuffers(m_window.get());
+    }
 }

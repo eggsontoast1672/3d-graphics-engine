@@ -1,26 +1,38 @@
-#include "engine/texture.h"
+#include "engine/texture.hpp"
 
 #include <GL/glew.h>
 
-static GLuint s_texture_id = 0;
-
-void engine_texture_init(void)
+namespace rasp
 {
-    glGenTextures(1, &s_texture_id);
-    glBindTexture(GL_TEXTURE_2D, s_texture_id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-}
+    Texture::Texture()
+    {
+        glGenTextures(1, &m_id);
+        glBindTexture(GL_TEXTURE_2D, m_id);
 
-void engine_texture_quit(void)
-{
-    glDeleteTextures(1, &s_texture_id);
-}
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-void engine_texture_set_data(const Image *image)
-{
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0,
-                 GL_RGB, GL_UNSIGNED_BYTE, image->data);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    Texture::~Texture()
+    {
+        glDeleteTextures(1, &m_id);
+
+        // Unbind the texture so that it does not accidentally get used.
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    void Texture::set_data(const Image& image) const
+    {
+        int width = image.get_width();
+        int height = image.get_height();
+        const std::uint8_t* pixels = image.get_pixels();
+
+        bind();
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        unbind();
+    }
 }
