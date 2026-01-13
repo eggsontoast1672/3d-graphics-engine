@@ -1,8 +1,13 @@
 #include "raspberry/renderer.hpp"
 
+#include <cmath>
+
+constexpr int sw = 640;
+constexpr int sh = 480;
+
 int main()
 {
-    rasp::Renderer renderer("3D Renderer", 640, 480);
+    rasp::Renderer renderer("3D Renderer", sw, sh);
 
     bool running = true;
     while (running)
@@ -16,8 +21,17 @@ int main()
             }
         }
 
+        double ticks = SDL_GetTicks() / 500.0;
+
+        std::size_t start_x = sw / 2.0;
+        std::size_t start_y = sh / 2.0;
+        std::size_t end_x = sw / 2.0 + sw / 4.0 * std::cos(ticks);
+        std::size_t end_y = sh / 2.0 + sh / 4.0 * std::sin(ticks);
+
         renderer.clear(rasp::Color{0x00, 0x00, 0x00});
         renderer.fill_rect(100, 100, 200, 200, rasp::Color{0xff, 0x00, 0x00});
+        renderer.fill_pixel(end_x, end_y, rasp::Color{0x00, 0x00, 0xff});
+        renderer.draw_line(start_x, start_y, end_x, end_y, rasp::Color{0x00, 0xff, 0x00});
         renderer.display();
     }
 }

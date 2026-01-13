@@ -1,5 +1,7 @@
 #include "raspberry/renderer.hpp"
 
+#include <cstdlib>
+
 namespace rasp
 {
     Renderer::Renderer(const char* title, std::uint16_t width, std::uint16_t height)
@@ -39,6 +41,30 @@ namespace rasp
             for (std::size_t x = x1; x < x2; x++)
             {
                 fill_pixel(x, y, color);
+            }
+        }
+    }
+
+    void Renderer::draw_line(int x0, int y0, int x1, int y1, Color color)
+    {
+        const int dx = x1 - x0;
+        const int dy = y1 - y0;
+
+        int d = 2 * dy - dx;
+        int y = y0;
+
+        for (int x = x0; x < x1; x++)
+        {
+            fill_pixel(x, y, color);
+
+            if (d > 0)
+            {
+                y = y + 1;
+                d = d + (2 * (dy - dx));
+            }
+            else
+            {
+                d = d + 2 * dy;
             }
         }
     }
