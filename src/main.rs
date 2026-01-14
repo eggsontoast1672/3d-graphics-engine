@@ -37,17 +37,18 @@ fn main() {
             }
         }
 
-        let ticks = sdl3::timer::ticks() as f64 / 100.0;
+        let ticks = sdl3::timer::ticks() as f64 / 1000.0;
 
         for y in 0..LH {
             for x in 0..LW {
                 let index = (y * LW + x) as usize * 3;
-                let angle = x as f64 + y as f64 + ticks;
-                let red = angle.cos().abs();
+                let angle = x as f64 / 40.0 + y as f64 / 30.0 + ticks;
+                let red = (angle * 2.0).cos().abs();
+                let green = (angle * 3.0).cos().abs();
                 let blue = angle.sin().abs();
 
                 screen[index] = (red * 255.0) as u8;
-                screen[index + 1] = 127;
+                screen[index + 1] = (green * 255.0) as u8;
                 screen[index + 2] = (blue * 255.0) as u8;
             }
         }
