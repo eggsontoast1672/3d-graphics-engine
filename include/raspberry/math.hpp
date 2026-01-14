@@ -2,8 +2,22 @@
 
 #include <type_traits>
 
+#include "raspberry/types.hpp"
+
 namespace rasp
 {
+    struct UVec2
+    {
+        u32 x;
+        u32 y;
+    };
+
+    struct Vec2
+    {
+        f32 x;
+        f32 y;
+    };
+
     template <typename Number>
     struct Vec3
     {
@@ -51,5 +65,13 @@ namespace rasp
                 .z = this->z / rhs,
             };
         }
+    };
+
+    struct Vec4
+    {
+        f32 x;
+        f32 y;
+        f32 z;
+        f32 w;
     };
 }

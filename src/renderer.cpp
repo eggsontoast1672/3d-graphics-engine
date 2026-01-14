@@ -29,6 +29,12 @@ namespace rasp
         SDL_DestroyWindow(m_window);
     }
 
+    UVec2 Renderer::canonocalize(Vec4 vertex) const
+    {
+        const Vec4 homogenized = vertex / vertex.w;
+        const Vec2
+    }
+
     void Renderer::fill_pixel(u16 x, u16 y, Color color)
     {
         const std::size_t index = (y * m_logical_width + x) * 3;
@@ -49,23 +55,19 @@ namespace rasp
         }
     }
 
-    void Renderer::draw_horizontal_line(u16 x0, u16 y0, u16 x1, u16 y1, Color color)
+    void Renderer::draw_horizontal_line(UVec2 p1, UVec2 p2, Color color)
     {
-        if (x0 > x1)
-        {
-            std::swap(x0, x1);
-            std::swap(y0, y1);
-        }
+        if (p1.x > p2.x) std::swap(p1, p2);
 
-        const i32 dx = x1 - x0;
-        i32 dy = y1 - y0;
+        const i32 dx = p2.x - p1.x;
+        i32 dy = p2.y - p1.y;
         const i32 dir = dy < 0 ? -1 : 1;
         dy *= dir;
 
-        i32 y = y0;
+        i32 y = p1.y;
         i32 d = 2 * dy - dx;
 
-        for (i32 x = x0; x <= x1; x++)
+        for (i32 x = p1.x; x <= p2.x; x++)
         {
             fill_pixel(x, y, color);
 
@@ -79,23 +81,19 @@ namespace rasp
         }
     }
 
-    void Renderer::draw_vertical_line(u16 x0, u16 y0, u16 x1, u16 y1, Color color)
+    void Renderer::draw_vertical_line(UVec2 p1, UVec2 p2, Color color)
     {
-        if (y0 > y1)
-        {
-            std::swap(x0, x1);
-            std::swap(y0, y1);
-        }
+        if (p1.y > p2.y) std::swap(p1, p2);
 
-        i32 dx = x1 - x0;
-        const i32 dy = y1 - y0;
+        i32 dx = p2.x - p1.x;
+        const i32 dy = p2.y - p1.y;
         const i32 dir = dx < 0 ? -1 : 1;
         dx *= dir;
 
-        i32 x = x0;
+        i32 x = p1.x;
         i32 d = 2 * dx - dy;
 
-        for (i32 y = y0; y <= y1; y++)
+        for (i32 y = p1.y; y <= p2.y; y++)
         {
             fill_pixel(x, y, color);
 
@@ -109,16 +107,29 @@ namespace rasp
         }
     }
 
-    void Renderer::draw_line(u16 x0, u16 y0, u16 x1, u16 y1, Color color)
+    void Renderer::draw_line(Vec4 p1, Vec4 p2, Color color)
     {
-        if (std::abs(x0 - x1) > std::abs(y0 - y1))
+        const UVec2 p1_normal = canonocalize(p1);
+        const UVec2 p2_normal = canonocalize(p2);
+
+        const u32 run = std::abs(static_cast<long>(p1_normal.x - p2_normal.x));
+        const u32 rise = std::abs(static_cast<long>(p1_normal.y - p2_normal.y));
+
+        if (run > rise)
         {
-            draw_horizontal_line(x0, y0, x1, y1, color);
+            draw_horizontal_line(p1_normal, p2_normal, color);
         }
         else
         {
-            draw_vertical_line(x0, y0, x1, y1, color);
+            draw_vertical_line(p1_normal, p2_normal, color);
         }
+    }
+
+    void Renderer::draw_triangle(Vec4 p1, Vec4 p2, Vec4 p3, Color color)
+    {
+        draw_line(p1, p2, color);
+        draw_line(p2, p3, color);
+        draw_line(p3, p1, color);
     }
 
     void Renderer::clear(Color color)

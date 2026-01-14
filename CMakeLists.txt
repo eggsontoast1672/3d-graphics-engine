@@ -9,9 +9,11 @@ pkg_check_modules(SDL3 REQUIRED sdl3)
 add_executable(
   engine
   include/raspberry/math.hpp
+  include/raspberry/model.hpp
   include/raspberry/renderer.hpp
   include/raspberry/types.hpp
   src/main.cpp
+  src/model.cpp
   src/renderer.cpp
 )
 
