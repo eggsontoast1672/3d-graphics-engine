@@ -1,62 +1,31 @@
-use sdl3::event::Event;
-use sdl3::pixels::PixelFormat;
-use sdl3::render::ScaleMode;
-
-const LW: u32 = 40;
-const LH: u32 = 30;
-
-fn make_screen() -> Box<[u8]> {
-    vec![0; (LW * LH * 3) as usize].into_boxed_slice()
-}
+use raspberry::renderer::Renderer;
 
 fn main() {
-    let mut screen = make_screen();
+    const WIDTH: u32 = 40;
+    const HEIGHT: u32 = 30;
+    const SCALE: u32 = 20;
 
-    let sdl_context = sdl3::init().unwrap();
-    let video_subsystem = sdl_context.video().unwrap();
-    let _window = video_subsystem
-        .window("Raspberry Engine", 800, 600)
-        .build()
-        .unwrap();
+    let mut renderer = Renderer::new(WIDTH, HEIGHT, SCALE);
 
-    let mut canvas = _window.into_canvas();
-    let texture_creator = canvas.texture_creator();
-    let mut texture = texture_creator
-        .create_texture_streaming(PixelFormat::RGB24, 40, 30)
-        .unwrap();
+    while renderer.is_running() {
+        renderer.clear();
 
-    texture.set_scale_mode(ScaleMode::Nearest);
+        let ticks = sdl3::timer::ticks() as f32 / 1000.0;
 
-    let mut event_pump = sdl_context.event_pump().unwrap();
+        for y in 0..HEIGHT {
+            for x in 0..WIDTH {
+                let angle = x as f32 / 40.0 + y as f32 / 30.0 + ticks;
+                let color = sdl3::pixels::FColor {
+                    r: (angle * 2.0).cos().abs(),
+                    g: (angle * 3.0).cos().abs(),
+                    b: angle.sin().abs(),
+                    a: 1.0,
+                };
 
-    'running: loop {
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. } => break 'running,
-                _ => {}
+                renderer.draw_pixel(x, y, color);
             }
         }
 
-        let ticks = sdl3::timer::ticks() as f64 / 1000.0;
-
-        for y in 0..LH {
-            for x in 0..LW {
-                let index = (y * LW + x) as usize * 3;
-                let angle = x as f64 / 40.0 + y as f64 / 30.0 + ticks;
-                let red = (angle * 2.0).cos().abs();
-                let green = (angle * 3.0).cos().abs();
-                let blue = angle.sin().abs();
-
-                screen[index] = (red * 255.0) as u8;
-                screen[index + 1] = (green * 255.0) as u8;
-                screen[index + 2] = (blue * 255.0) as u8;
-            }
-        }
-
-        texture.update(None, &screen, LW as usize * 3).unwrap();
-
-        canvas.clear();
-        canvas.copy(&texture, None, None).unwrap();
-        canvas.present();
+        renderer.display();
     }
 }
